@@ -1,18 +1,24 @@
 // use clap::Parser;
-use clap::{arg, command, value_parser, ArgAction, Command, Arg};
+use clap::{arg, command, value_parser, Command, Arg, ArgAction};
 
-use http_body_util::Empty;
-use hyper::Request;
-use hyper::body::Bytes;
-use tokio::net::TcpStream;
+
+// fn ping(url: &str) -> Result<(), Box<dyn std::error::Error>> {
+fn ping(url: &str) {
+    let resp = reqwest::blocking::get(url);
+    dbg!("ping");
+    println!("hello");
+    println!("{:?}", resp);
+    // Ok(())
+}
 
 fn main() {
+    println!("Hello world");
     let matches = command!() // requires `cargo` feature
-        .arg(Arg::new("conf_host").long("conf.host"))
+        .arg(Arg::new("conf_host").long("conf.host").default_value("https://localhost"))
         .arg(Arg::new("conf_token").long("conf.token"))
         .arg(Arg::new("conf_username").long("conf.username"))
         .arg(Arg::new("conf_password").long("conf.password"))
-        .arg(Arg::new("conf_insecure").short('k').long("conf.insecure"))
+        .arg(Arg::new("conf_insecure").short('k').long("conf.insecure").action(ArgAction::SetTrue))
         .arg(Arg::new("conf_color").long("conf.color"))
         .subcommand(Command::new("login"))
         .subcommand(Command::new("config"))
@@ -34,6 +40,12 @@ fn main() {
             -d --debug ... "Turn debugging information on"
         ))
         .get_matches();
-    //let args = Args::parse();
-    dbg!(matches.get_one::<String>("conf_host").map(String::as_str));
+
+    let conf_host = if let Some(conf_host) = matches.get_one::<String>("conf_host").map(String::as_str) { conf_host } else { "" };
+    // println!("conf_host = {}", conf_host);
+    if let Some(matches) = matches.subcommand_matches("ping") {
+        let conf_host = conf_host;
+        ping("https://ansible.cloudns.pro");
+        println!("conf_host = {}", conf_host);
+    }
 }
